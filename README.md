@@ -16,4 +16,5 @@ Spinning cube using Euler transformations and vector translation
 ![image](https://github.com/user-attachments/assets/5ea2cadf-5a82-4e19-944b-6b09d7ff8c6f)
 
 Moveable camera and more accurate depth space with perspective
-https://github.com/user-attachments/assets/99e91f20-372a-418e-b4e8-16969c267507
+https://github.com/user-attachments/assets/d086e9d1-f891-4a40-81fd-39e2d44d4d1a
+
