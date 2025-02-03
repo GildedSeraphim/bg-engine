@@ -11,3 +11,7 @@ Animated Triangle Stack
 
 Spinning Triangle with GLM
 ![image](https://github.com/user-attachments/assets/4b0db2c2-5379-4a7d-9de3-44b2f50e7f27)
+
+Spinning cube using Euler transformations and vector translation
+![image](https://github.com/user-attachments/assets/4b8109c8-5806-4dcd-934d-aceed7ee4263)
+
