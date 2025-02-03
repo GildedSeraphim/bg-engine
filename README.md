@@ -15,3 +15,6 @@ Spinning Triangle with GLM
 Spinning cube using Euler transformations and vector translation
 ![image](https://github.com/user-attachments/assets/5ea2cadf-5a82-4e19-944b-6b09d7ff8c6f)
 
+Moveable camera and more accurate depth space with perspective
+![video](https://github.com/user-attachments/assets/99e91f20-372a-418e-b4e8-16969c267507)
+
