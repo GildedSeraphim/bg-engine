@@ -6,3 +6,6 @@ Cornflower Blue Serpenski Triangle
 Classic linear interpolation rainbow triangle
 ![image](https://github.com/user-attachments/assets/c7bcfd73-8c12-4297-82a8-b78bc15fd869)
 
+Animated Triangle Stack
+
+
