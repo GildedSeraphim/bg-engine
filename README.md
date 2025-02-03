@@ -7,5 +7,4 @@ Classic linear interpolation rainbow triangle
 ![image](https://github.com/user-attachments/assets/c7bcfd73-8c12-4297-82a8-b78bc15fd869)
 
 Animated Triangle Stack
-
-
+![image](https://github.com/user-attachments/assets/b36a4f76-1ce0-4cba-a5c4-235f2dc195b8)
