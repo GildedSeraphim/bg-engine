@@ -65,8 +65,11 @@ void SimpleRenderSystem::createPipeline(VkRenderPass renderPass) {
 }
 
 void SimpleRenderSystem::renderGameObjects(
-    VkCommandBuffer commandBuffer, std::vector<LveGameObject> &gameObjects) {
+    VkCommandBuffer commandBuffer, std::vector<LveGameObject> &gameObjects,
+    const LveCamera &camera) {
   lvePipeline->bind(commandBuffer);
+
+  auto projectionView = camera.getProjection() * camera.getView();
 
   for (auto &obj : gameObjects) {
     obj.transform.rotation.y =
@@ -76,7 +79,7 @@ void SimpleRenderSystem::renderGameObjects(
 
     SimplePushConstantData push;
     push.color = obj.color;
-    push.transform = obj.transform.mat4();
+    push.transform = projectionView * obj.transform.mat4();
 
     vkCmdPushConstants(commandBuffer, pipelineLayout,
                        VK_SHADER_STAGE_VERTEX_BIT |
