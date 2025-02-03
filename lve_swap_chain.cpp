@@ -14,6 +14,19 @@ namespace lve {
 
 LveSwapChain::LveSwapChain(LveDevice &deviceRef, VkExtent2D extent)
     : device{deviceRef}, windowExtent{extent} {
+  init();
+}
+
+LveSwapChain::LveSwapChain(LveDevice &deviceRef, VkExtent2D extent,
+                           std::shared_ptr<LveSwapChain> previous)
+    : device{deviceRef}, windowExtent{extent}, oldSwapChain{previous} {
+  init();
+
+  // clean up old swap chain
+  oldSwapChain = nullptr;
+}
+
+void LveSwapChain::init() {
   createSwapChain();
   createImageViews();
   createRenderPass();
@@ -162,7 +175,8 @@ void LveSwapChain::createSwapChain() {
   createInfo.presentMode = presentMode;
   createInfo.clipped = VK_TRUE;
 
-  createInfo.oldSwapchain = VK_NULL_HANDLE;
+  createInfo.oldSwapchain =
+      oldSwapChain == nullptr ? VK_NULL_HANDLE : oldSwapChain->swapChain;
 
   if (vkCreateSwapchainKHR(device.device(), &createInfo, nullptr, &swapChain) !=
       VK_SUCCESS) {
@@ -171,9 +185,9 @@ void LveSwapChain::createSwapChain() {
 
   // we only specified a minimum number of images in the swap chain, so the
   // implementation is allowed to create a swap chain with more. That's why
-  // we'll first query the final number of images with vkGetSwapchainImagesKHR,
-  // then resize the container and finally call it again to retrieve the
-  // handles.
+  // we'll first query the final number of images with
+  // vkGetSwapchainImagesKHR, then resize the container and finally call it
+  // again to retrieve the handles.
   vkGetSwapchainImagesKHR(device.device(), swapChain, &imageCount, nullptr);
   swapChainImages.resize(imageCount);
   vkGetSwapchainImagesKHR(device.device(), swapChain, &imageCount,

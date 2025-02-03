@@ -1,21 +1,20 @@
 #include "lve_pipeline.hpp"
+
 #include "lve_model.hpp"
 
+// std
 #include <cassert>
-#include <cstddef>
 #include <fstream>
-#include <glm/ext/scalar_uint_sized.hpp>
 #include <iostream>
 #include <stdexcept>
-#include <vector>
-#include <vulkan/vulkan_core.h>
 
 namespace lve {
-LvePipeline::LvePipeline(LveDevice &device, const std::string &vertFilePath,
-                         const std::string &fragFilePath,
+
+LvePipeline::LvePipeline(LveDevice &device, const std::string &vertFilepath,
+                         const std::string &fragFilepath,
                          const PipelineConfigInfo &configInfo)
     : lveDevice{device} {
-  createGraphicsPipeline(vertFilePath, fragFilePath, configInfo);
+  createGraphicsPipeline(vertFilepath, fragFilepath, configInfo);
 }
 
 LvePipeline::~LvePipeline() {
@@ -25,33 +24,34 @@ LvePipeline::~LvePipeline() {
 }
 
 std::vector<char> LvePipeline::readFile(const std::string &filepath) {
-  std::ifstream file(filepath, std::ios::ate | std::ios::binary);
+  std::ifstream file{filepath, std::ios::ate | std::ios::binary};
 
   if (!file.is_open()) {
     throw std::runtime_error("failed to open file: " + filepath);
   }
+
   size_t fileSize = static_cast<size_t>(file.tellg());
   std::vector<char> buffer(fileSize);
 
   file.seekg(0);
   file.read(buffer.data(), fileSize);
-  file.close();
 
+  file.close();
   return buffer;
 }
-void LvePipeline::createGraphicsPipeline(const std::string &vertFilePath,
-                                         const std::string &fragFilePath,
+
+void LvePipeline::createGraphicsPipeline(const std::string &vertFilepath,
+                                         const std::string &fragFilepath,
                                          const PipelineConfigInfo &configInfo) {
   assert(configInfo.pipelineLayout != VK_NULL_HANDLE &&
-         "cannot create graphics pipeline:: no pipelineLayout provided in "
+         "Cannot create graphics pipeline: no pipelineLayout provided in "
          "configInfo");
+  assert(
+      configInfo.renderPass != VK_NULL_HANDLE &&
+      "Cannot create graphics pipeline: no renderPass provided in configInfo");
 
-  assert(configInfo.renderPass != VK_NULL_HANDLE &&
-         "cannot create graphics pipeline:: no renderPass provided in "
-         "configInfo");
-
-  auto vertCode = readFile(vertFilePath);
-  auto fragCode = readFile(fragFilePath);
+  auto vertCode = readFile(vertFilepath);
+  auto fragCode = readFile(fragFilepath);
 
   createShaderModule(vertCode, &vertShaderModule);
   createShaderModule(fragCode, &fragShaderModule);
@@ -64,7 +64,6 @@ void LvePipeline::createGraphicsPipeline(const std::string &vertFilePath,
   shaderStages[0].flags = 0;
   shaderStages[0].pNext = nullptr;
   shaderStages[0].pSpecializationInfo = nullptr;
-
   shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
   shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
   shaderStages[1].module = fragShaderModule;
@@ -85,24 +84,18 @@ void LvePipeline::createGraphicsPipeline(const std::string &vertFilePath,
   vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
   vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
 
-  VkPipelineViewportStateCreateInfo viewportInfo{};
-  viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-  viewportInfo.viewportCount = 1;
-  viewportInfo.pViewports = &configInfo.viewport;
-  viewportInfo.scissorCount = 1;
-  viewportInfo.pScissors = &configInfo.scissor;
-
   VkGraphicsPipelineCreateInfo pipelineInfo{};
   pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
   pipelineInfo.stageCount = 2;
   pipelineInfo.pStages = shaderStages;
   pipelineInfo.pVertexInputState = &vertexInputInfo;
   pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
-  pipelineInfo.pViewportState = &viewportInfo;
+  pipelineInfo.pViewportState = &configInfo.viewportInfo;
   pipelineInfo.pRasterizationState = &configInfo.rasterizationInfo;
   pipelineInfo.pMultisampleState = &configInfo.multisampleInfo;
   pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo;
-  pipelineInfo.pDynamicState = nullptr;
+  pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
+  pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo;
 
   pipelineInfo.layout = configInfo.pipelineLayout;
   pipelineInfo.renderPass = configInfo.renderPass;
@@ -114,7 +107,7 @@ void LvePipeline::createGraphicsPipeline(const std::string &vertFilePath,
   if (vkCreateGraphicsPipelines(lveDevice.device(), VK_NULL_HANDLE, 1,
                                 &pipelineInfo, nullptr,
                                 &graphicsPipeline) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create graphics pipeline!");
+    throw std::runtime_error("failed to create graphics pipeline");
   }
 }
 
@@ -127,37 +120,27 @@ void LvePipeline::createShaderModule(const std::vector<char> &code,
 
   if (vkCreateShaderModule(lveDevice.device(), &createInfo, nullptr,
                            shaderModule) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create shader module!");
+    throw std::runtime_error("failed to create shader module");
   }
 }
 
 void LvePipeline::bind(VkCommandBuffer commandBuffer) {
-
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                     graphicsPipeline);
 }
 
-PipelineConfigInfo LvePipeline::defaultPipelineConfigInfo(uint32_t width,
-                                                          uint32_t height) {
-  PipelineConfigInfo configInfo{};
-  // This is how we tell the API how we want
-  // the data to be interpreted. Since We
-  // specified VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
-  // the data will be sorted as points as a triangle.
+void LvePipeline::defaultPipelineConfigInfo(PipelineConfigInfo &configInfo) {
   configInfo.inputAssemblyInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
   configInfo.inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
   configInfo.inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-  configInfo.viewport.x = 0.0f;
-  configInfo.viewport.y = 0.0f;
-  configInfo.viewport.width = static_cast<float>(width);
-  configInfo.viewport.height = static_cast<float>(height);
-  configInfo.viewport.minDepth = 0.0f;
-  configInfo.viewport.maxDepth = 1.0f;
-
-  configInfo.scissor.offset = {0, 0};
-  configInfo.scissor.extent = {width, height};
+  configInfo.viewportInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+  configInfo.viewportInfo.viewportCount = 1;
+  configInfo.viewportInfo.pViewports = nullptr;
+  configInfo.viewportInfo.scissorCount = 1;
+  configInfo.viewportInfo.pScissors = nullptr;
 
   configInfo.rasterizationInfo.sType =
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -219,7 +202,15 @@ PipelineConfigInfo LvePipeline::defaultPipelineConfigInfo(uint32_t width,
   configInfo.depthStencilInfo.front = {}; // Optional
   configInfo.depthStencilInfo.back = {};  // Optional
 
-  return configInfo;
+  configInfo.dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT,
+                                    VK_DYNAMIC_STATE_SCISSOR};
+  configInfo.dynamicStateInfo.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+  configInfo.dynamicStateInfo.pDynamicStates =
+      configInfo.dynamicStateEnables.data();
+  configInfo.dynamicStateInfo.dynamicStateCount =
+      static_cast<uint32_t>(configInfo.dynamicStateEnables.size());
+  configInfo.dynamicStateInfo.flags = 0;
 }
 
 } // namespace lve
