@@ -16,5 +16,5 @@ Spinning cube using Euler transformations and vector translation
 ![image](https://github.com/user-attachments/assets/5ea2cadf-5a82-4e19-944b-6b09d7ff8c6f)
 
 Moveable camera and more accurate depth space with perspective
-https://github.com/user-attachments/assets/d086e9d1-f891-4a40-81fd-39e2d44d4d1a
+https://github.com/GildedSeraphim/bg-engine/blob/main/.github/assets/2025-02-03%2013-32-35.mp4
 
