@@ -8,3 +8,6 @@ Classic linear interpolation rainbow triangle
 
 Animated Triangle Stack
 ![image](https://github.com/user-attachments/assets/b36a4f76-1ce0-4cba-a5c4-235f2dc195b8)
+
+Spinning Triangle with GLM
+![image](https://github.com/user-attachments/assets/4b0db2c2-5379-4a7d-9de3-44b2f50e7f27)
