@@ -1,10 +1,13 @@
 #include "first_app.hpp"
 #include "keyboard_movement_controller.hpp"
+#include "lve_buffer.hpp"
 #include "lve_camera.hpp"
 #include "simple_render_system.hpp"
 
 #include <chrono>
 #include <cstdint>
+#include <glm/ext/vector_float3.hpp>
+#include <glm/geometric.hpp>
 #include <glm/trigonometric.hpp>
 #include <memory>
 #include <utility>
@@ -21,11 +24,26 @@
 
 namespace lve {
 
+struct GlobalUbo {
+  glm::mat4 projectionView{1.f};
+  glm::vec3 lightDirection = glm::normalize(glm::vec3{1.f, -3.f, -1.f});
+};
+
 FirstApp::FirstApp() { loadGameObjects(); }
 
 FirstApp::~FirstApp() {}
 
 void FirstApp::run() {
+  LveBuffer globalUboBuffer{
+      lveDevice,
+      sizeof(GlobalUbo),
+      LveSwapChain::MAX_FRAMES_IN_FLIGHT,
+      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+      lveDevice.properties.limits.minUniformBufferOffsetAlignment,
+  };
+  globalUboBuffer.map();
+
   SimpleRenderSystem simpleRenderSystem{lveDevice,
                                         lveRenderer.getSwapChainRenderPass()};
 
@@ -56,9 +74,19 @@ void FirstApp::run() {
     camera.setPerspectiveProjection(glm::radians(50.f), aspect, 0.1f, 10.f);
 
     if (auto commandBuffer = lveRenderer.beginFrame()) {
-      lveRenderer.beginSwapChainRenderPass(commandBuffer);
-      simpleRenderSystem.renderGameObjects(commandBuffer, gameObjects, camera);
-      lveRenderer.endSwapChainRenderPass(commandBuffer);
+      int frameIndex = lveRenderer.getFrameIndex();
+      FrameInfo frameInfo{frameIndex, frameTime, commandBuffer, camera};
+
+      // update
+      GlobalUbo ubo{};
+      ubo.projectionView = camera.getProjection();
+      globalUboBuffer.writeToIndex(&ubo, frameIndex);
+      globalUboBuffer.flushIndex(frameIndex);
+
+      // render
+      lveRenderer.beginSwapChainRenderPass(frameInfo.commandBuffer);
+      simpleRenderSystem.renderGameObjects(frameInfo, gameObjects);
+      lveRenderer.endSwapChainRenderPass(frameInfo.commandBuffer);
       lveRenderer.endFrame();
     }
   }
@@ -68,11 +96,13 @@ void FirstApp::run() {
 void FirstApp::loadGameObjects() {
   std::shared_ptr<LveModel> lveModel =
       LveModel::createModelFromFile(lveDevice, "models/flat_vase.obj");
+
   auto flatVase = LveGameObject::createGameObject();
   flatVase.model = lveModel;
   flatVase.transform.translation = {-.5f, .5f, 2.5f};
   flatVase.transform.scale = {3.f, 1.5f, 3.f};
   gameObjects.push_back(std::move(flatVase));
+
   lveModel = LveModel::createModelFromFile(lveDevice, "models/smooth_vase.obj");
   auto smoothVase = LveGameObject::createGameObject();
   smoothVase.model = lveModel;
