@@ -1,6 +1,7 @@
 #include "lve_model.hpp"
 #include "lve_utils.hpp"
 
+#include <cstddef>
 #include <memory>
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -140,16 +141,16 @@ LveModel::Vertex::getBindingDescriptions() {
 
 std::vector<VkVertexInputAttributeDescription>
 LveModel::Vertex::getAttributeDescriptions() {
-  std::vector<VkVertexInputAttributeDescription> attributeDescriptions(2);
-  attributeDescriptions[0].binding = 0;
-  attributeDescriptions[0].location = 0;
-  attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-  attributeDescriptions[0].offset = offsetof(Vertex, position);
+  std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
+  attributeDescriptions.push_back(
+      {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)});
+  attributeDescriptions.push_back(
+      {1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color)});
+  attributeDescriptions.push_back(
+      {2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)});
+  attributeDescriptions.push_back(
+      {3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv)});
 
-  attributeDescriptions[1].binding = 0;
-  attributeDescriptions[1].location = 1;
-  attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-  attributeDescriptions[1].offset = offsetof(Vertex, color);
   return attributeDescriptions;
 }
 
@@ -179,16 +180,11 @@ void LveModel::Builder::loadModel(const std::string &filepath) {
 
         };
 
-        auto colorIndex = 3 * index.vertex_index + 2;
-        if (colorIndex < attrib.colors.size()) {
-          vertex.color = {attrib.colors[colorIndex - 2],
-                          attrib.colors[colorIndex - 1],
-                          attrib.colors[colorIndex - 0]
+        vertex.color = {attrib.colors[3 * index.vertex_index + 0],
+                        attrib.colors[3 * index.vertex_index + 1],
+                        attrib.colors[3 * index.vertex_index + 2]
 
-          };
-        } else {
-          vertex.color = {0.392f, 0.584f, 0.929f}; // sets default color
-        }
+        };
       }
       if (index.normal_index >= 0) {
         vertex.normal = {attrib.normals[3 * index.normal_index + 0],
