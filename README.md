@@ -21,4 +21,6 @@ https://github.com/user-attachments/assets/2aa7e83f-2d97-4181-8b3f-a567ecccc046
 Using indices to reduced loaded vertices from around 30000 to 5000
 ![image](https://github.com/user-attachments/assets/052884d4-970f-48e2-9167-f387c07e5907)
 
+Diffuse Shading with Ambient Occlusion
+![image](https://github.com/user-attachments/assets/189ec65a-c5e9-4dcd-863d-0c7b5b9f863e)
 
