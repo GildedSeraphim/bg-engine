@@ -24,3 +24,5 @@ Using indices to reduced loaded vertices from around 30000 to 5000
 Diffuse Shading with Ambient Occlusion
 ![image](https://github.com/user-attachments/assets/189ec65a-c5e9-4dcd-863d-0c7b5b9f863e)
 
+Multiple objects with shading and depth
+![image](https://github.com/user-attachments/assets/20714fbe-3190-4125-af3e-e2bd6e242cc1)
