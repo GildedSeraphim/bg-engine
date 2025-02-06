@@ -26,3 +26,7 @@ Diffuse Shading with Ambient Occlusion
 
 Multiple objects with shading and depth
 ![image](https://github.com/user-attachments/assets/20714fbe-3190-4125-af3e-e2bd6e242cc1)
+
+Basic Point lighting
+![image](https://github.com/user-attachments/assets/d77c7ffd-8823-4162-a70e-7e0d33057a3a)
+
